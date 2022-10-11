@@ -1,4 +1,4 @@
-import {model, Schema, Types} from "mongoose";
+import { model, Schema, Types } from "mongoose";
 
 export interface IPost {
     author: Types.ObjectId;
@@ -11,7 +11,7 @@ export interface IPost {
 const Post = new Schema<IPost>({
     author: {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         required: true,
     },
     status: {
@@ -24,7 +24,7 @@ const Post = new Schema<IPost>({
     },
     content: {
         type: String,
-        required: true
+        required: true,
     },
     last_refresh: {
         type: Date,
@@ -32,4 +32,4 @@ const Post = new Schema<IPost>({
     },
 });
 
-export default model<IPost>('Post', Post);
+export default model<IPost>("Post", Post);

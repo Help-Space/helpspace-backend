@@ -1,38 +1,27 @@
-import { Request, Response, Router } from "express";
-import Post, { IPost } from "models/post";
+import { Router } from "express";
+import mongoose from "mongoose";
+import Post, { IPost } from "../models/post";
+import { Responses } from "../types/responses";
 
 interface GetByIdParams {
     id: string;
 }
 
-type Responses<T, N = string> = NormalResponse<T> | ErrorsResponse<N> | ErrorResponse;
+const router = Router();
 
-interface NormalResponse<T> {
-    data: T
-}
-
-interface ErrorsResponse<T>  {
-    errors: T[]
-}
-
-interface ErrorResponse {
-    message: string;
-}
-
-const getById = (req: Request<GetByIdParams>, res: Responses<IPost>) => {
+router.get<GetByIdParams, Responses<IPost>>("/:id", async (req, res) => {
     const id = req.params.id;
-    if(!id) {
-        return res.status(400).json({ message: "Id is missing" })
+    if (!id) {
+        return res.status(400).json({ message: "Id is missing" });
     }
-    const post = Post.findById(req.params.id);
-    if(!post) {
-        return res.status(404).json({ message: "Post not found!" })
+    if (!mongoose.isObjectIdOrHexString(id)) {
+        return res.status(400).json({ message: "Id is not correct" });
     }
-    res.status(200).send({ data: post });
-}
+    const post = await Post.findById(mongoose.Types.ObjectId.createFromHexString(id));
+    if (!post) {
+        return res.status(404).json({ message: "Post not found!" });
+    }
+    res.status(200).json({ data: post });
+});
 
-export const setUpPostRoutes = () => {
-    const router = Router();
-    router.get("/:id", getById);
-    return router;
-}
+export default router;

@@ -1,7 +1,8 @@
 import express, { Express } from "express";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
-import user from "./routes/user";
+import postRoutes from "./routes/post";
+import userRoutes from "./routes/user";
 
 dotenv.config();
 
@@ -9,7 +10,7 @@ const app: Express = express();
 const port = process.env.PORT || 3001;
 const mongodbUrl = process.env.MONGODB_URI;
 
-if(!mongodbUrl) {
+if (!mongodbUrl) {
     throw new Error("Mongo URL is not provided");
 }
 
@@ -20,9 +21,10 @@ connect(mongodbUrl).catch((err) => {
     app.all("*", (req, res) => {
         res.status(500).send("Something went wrong");
     });
-})
+});
 
-app.use("/user", user);
+app.use("/user", userRoutes);
+app.use("/post", postRoutes);
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
