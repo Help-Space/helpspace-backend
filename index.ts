@@ -4,7 +4,14 @@ import { connect } from "mongoose";
 
 dotenv.config();
 
-connect("mongodb://localhost:27017");
+const mongodbUrl = process.env.MONGODB_URI;
+if(!mongodbUrl) {
+    throw new Error("Mongo URL is not provided");
+}
+
+connect(mongodbUrl).catch((err) => {
+    throw err
+})
 
 const app: Express = express();
 const port = process.env.PORT || 3001;
