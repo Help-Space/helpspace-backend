@@ -1,6 +1,6 @@
 import {model, Schema, Types} from "mongoose";
 
-interface IPost {
+export interface IPost {
     author: Types.ObjectId;
     status: boolean;
     title: string;
