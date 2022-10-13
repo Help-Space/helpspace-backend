@@ -1,8 +1,8 @@
-import express, { Express } from "express";
+import express from "express";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
-import postRoutes from "./routes/post";
-import userRoutes from "./routes/user";
+import postRoutes from "./routes/post.js";
+import userRoutes from "./routes/user.js";
 
 dotenv.config();
 

@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { validationResult } from "express-validator";
 import mongoose from "mongoose";
-import Post from "../models/post";
-import { PostValidator } from "../validators/post";
+import Post from "../models/post.js";
+import { PostValidator } from "../validators/post.js";
 
 const router = Router();
 const validator = new PostValidator();
