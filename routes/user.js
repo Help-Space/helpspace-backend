@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { body, validationResult } from "express-validator";
-import User from "../models/user";
+import User from "../models/user.js";
 
 const router = Router();
 
