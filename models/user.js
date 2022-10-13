@@ -24,6 +24,11 @@ const User = new Schema({
         type: Date,
         required: true,
     },
+    created_at: {
+        type: Date,
+        required: true,
+        default: new Date(),
+    }
 });
 
 export default model("User", User);
