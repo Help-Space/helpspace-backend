@@ -28,8 +28,8 @@ router.post(
         }
 
         createUser(req.body).then(
-            (ok: boolean) => {},
-            (err: Error) => {
+            (ok) => {},
+            (err) => {
                 res.status(500).send(err);
             }
         );
