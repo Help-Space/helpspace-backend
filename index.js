@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
+import cookieParser from "cookie-parser";
 import postRoutes, { getPosts } from "./routes/post.js";
 import userRoutes from "./routes/user.js";
 import { PostValidator } from "./validators/post.js";
@@ -16,8 +17,9 @@ if (!mongodbUrl) {
 }
 
 app.use(express.json());
+app.use(cookieParser());
 
-connect(mongodbUrl).catch((err) => {
+connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }).catch((err) => {
     console.error(err);
     app.all("*", (req, res) => {
         res.status(500).send("Something went wrong");
