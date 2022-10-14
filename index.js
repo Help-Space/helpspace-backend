@@ -2,10 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
 import cookieParser from "cookie-parser";
-import postRoutes, { getPosts } from "./routes/post.js";
+import postRoutes, { postsRoutes } from "./routes/post.js";
 import userRoutes from "./routes/user.js";
-import { PostValidator } from "./validators/post.js";
-import handleValidator from "./middlewares/handleValidator.js";
+import decodeUser from "./middlewares/user/decodeUser.js";
 
 dotenv.config();
 
@@ -19,6 +18,7 @@ if (!mongodbUrl) {
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(decodeUser);
 
 connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }).catch((err) => {
     console.error(err);
@@ -29,13 +29,11 @@ connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }).catch((
 
 app.use("/user", userRoutes);
 app.use("/post", postRoutes);
-app.get(
-    "/posts",
-    PostValidator.checkAuthorId(),
-    PostValidator.checkPage(),
-    handleValidator,
-    getPosts
-);
+app.use("/posts", postsRoutes);
+
+app.use((req, res) => {
+    res.status(404).json({ isError: true, message: "Route not found!" });
+});
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);

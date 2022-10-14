@@ -5,11 +5,11 @@ export class PostValidator {
         return param("id").isString().isMongoId();
     }
 
-    static checkAuthorId() {
+    checkAuthorId() {
         return query("authorId").optional().isMongoId();
     }
 
-    static checkPage() {
+    checkPage() {
         return query("page")
             .optional()
             .toInt()

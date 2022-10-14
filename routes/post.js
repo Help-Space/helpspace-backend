@@ -1,22 +1,22 @@
 import { Router } from "express";
-import mongoose from "mongoose";
 import Post from "../models/post.js";
 import { PostValidator } from "../validators/post.js";
 import handleValidator from "../middlewares/handleValidator.js";
+import getPostById from "../middlewares/post/getPostById.js";
+import hasPermissionToModify from "../middlewares/post/hasPermissionToModify.js";
+import authMiddleware from "../middlewares/user/auth.js";
 
 const router = Router();
+const withAuthRouter = Router();
 const validator = new PostValidator();
 
-router.get("/:id", validator.checkId(), handleValidator, async (req, res) => {
-    const { id } = req.params;
-    const post = await Post.findById(id);
-    if (!post) {
-        return res.status(404).json({ isError: true, message: "Post not found!" });
-    }
-    res.status(200).json({ isError: false, data: post });
+withAuthRouter.use(authMiddleware);
+
+router.get("/:id", validator.checkId(), handleValidator, getPostById, async (req, res) => {
+    res.status(200).json({ isError: false, data: req.post });
 });
 
-router.post(
+withAuthRouter.post(
     "/",
     validator.checkTitle(),
     validator.checkContent(),
@@ -24,7 +24,7 @@ router.post(
     async (req, res) => {
         const { title, content } = req.body;
         const post = new Post({
-            author: mongoose.Types.ObjectId.createFromHexString("634060dd27fb099710af9d23"),
+            author: req.user.id,
             title,
             content,
             is_open: true,
@@ -35,17 +35,22 @@ router.post(
     }
 );
 
-router.patch(
+withAuthRouter.patch(
     "/:id",
     validator.checkId(),
     validator.checkContent(),
     validator.checkTitle(),
     validator.checkIsOpen(),
     handleValidator,
+    getPostById,
+    hasPermissionToModify,
     async (req, res) => {
-        const { id } = req.params;
         const { content, title, isOpen } = req.body;
-        const updated = await Post.findByIdAndUpdate(id, { content, title, is_open: isOpen });
+        let { post } = req;
+        post.content = content;
+        post.title = title;
+        post.is_open = isOpen;
+        const updated = await post.save();
         if (!updated) {
             return res.status(404).json({ isError: true, message: "Post not updated" });
         }
@@ -53,32 +58,58 @@ router.patch(
     }
 );
 
-router.patch("/:id/refresh", validator.checkId(), handleValidator, async (req, res) => {
-    const { id } = req.params;
-    const updated = await Post.findByIdAndUpdate(id, { last_refresh: new Date() });
-    if (!updated) {
-        return res.status(404).json({ isError: true, message: "Post not updated" });
+withAuthRouter.patch(
+    "/:id/refresh",
+    validator.checkId(),
+    handleValidator,
+    getPostById,
+    hasPermissionToModify,
+    async (req, res) => {
+        let { post } = req;
+        post.last_refresh = new Date();
+        const updated = await post.save();
+        if (!updated) {
+            return res.status(404).json({ isError: true, message: "Post not updated" });
+        }
+        res.status(200).json({ isError: false, message: "Successfully refreshed post" });
     }
-    res.status(200).json({ isError: false, message: "Successfully refreshed post" });
-});
+);
 
-router.delete("/:id", validator.checkId(), handleValidator, async (req, res) => {
-    const { id } = req.params;
-    const deleted = await Post.findByIdAndDelete(id);
-    if (!deleted) {
-        return res.status(404).json({ isError: true, message: "Post not deleted" });
+withAuthRouter.delete(
+    "/:id",
+    validator.checkId(),
+    handleValidator,
+    getPostById,
+    hasPermissionToModify,
+    async (req, res) => {
+        const deleted = await req.post.remove();
+        if (!deleted) {
+            return res.status(404).json({ isError: true, message: "Post not deleted" });
+        }
+        res.status(200).json({ isError: false, message: "Post successfully deleted" });
     }
-    res.status(200).json({ isError: false, message: "Post successfully deleted" });
-});
+);
 
-export const getPosts = async (req, res) => {
-    const limit = 1;
-    let { page, authorId } = req.query;
-    const posts = await Post.find(authorId ? { author: authorId } : undefined)
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .sort({ last_refresh: -1 });
-    res.status(200).json({ isError: false, data: posts });
-};
+router.use("/", withAuthRouter);
+
+const postsRouter = Router();
+
+postsRouter.get(
+    "/",
+    validator.checkAuthorId(),
+    validator.checkPage(),
+    handleValidator,
+    async (req, res) => {
+        const limit = 20;
+        let { page, authorId } = req.query;
+        const posts = await Post.find(authorId ? { author: authorId } : undefined)
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .sort({ last_refresh: -1 });
+        res.status(200).json({ isError: false, data: posts });
+    }
+);
+
+export const postsRoutes = postsRouter;
 
 export default router;
