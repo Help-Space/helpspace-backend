@@ -5,8 +5,20 @@ export class PostValidator {
         return param("id").isString().isMongoId();
     }
 
-    checkAuthor() {
-        return body("author").isString();
+    static checkAuthorId() {
+        return query("authorId").optional().isMongoId();
+    }
+
+    static checkPage() {
+        return query("page")
+            .optional()
+            .toInt()
+            .customSanitizer((value) => {
+                if (isNaN(value) || value < 1) {
+                    return 1;
+                }
+                return value;
+            });
     }
 
     checkIsOpen() {

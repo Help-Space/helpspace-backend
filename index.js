@@ -4,6 +4,8 @@ import { connect } from "mongoose";
 import cookieParser from "cookie-parser";
 import postRoutes, { getPosts } from "./routes/post.js";
 import userRoutes from "./routes/user.js";
+import { PostValidator } from "./validators/post.js";
+import handleValidator from "./middlewares/handleValidator.js";
 
 dotenv.config();
 
@@ -27,7 +29,13 @@ connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }).catch((
 
 app.use("/user", userRoutes);
 app.use("/post", postRoutes);
-app.get("/posts", getPosts);
+app.get(
+    "/posts",
+    PostValidator.checkAuthorId(),
+    PostValidator.checkPage(),
+    handleValidator,
+    getPosts
+);
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);

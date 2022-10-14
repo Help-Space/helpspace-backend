@@ -24,7 +24,7 @@ router.post(
     async (req, res) => {
         const { title, content } = req.body;
         const post = new Post({
-            author: mongoose.Types.ObjectId.createFromHexString("634060dd27fb099710af9d24"),
+            author: mongoose.Types.ObjectId.createFromHexString("634060dd27fb099710af9d23"),
             title,
             content,
             is_open: true,
@@ -73,14 +73,11 @@ router.delete("/:id", validator.checkId(), handleValidator, async (req, res) => 
 
 export const getPosts = async (req, res) => {
     const limit = 1;
-    let { page } = req.query;
-    page = parseInt(page);
-    if (isNaN(page) || page < 1) {
-        page = 1;
-    }
-    const posts = await Post.find()
+    let { page, authorId } = req.query;
+    const posts = await Post.find(authorId ? { author: authorId } : undefined)
         .skip((page - 1) * limit)
-        .limit(limit);
+        .limit(limit)
+        .sort({ last_refresh: -1 });
     res.status(200).json({ isError: false, data: posts });
 };
 
