@@ -20,8 +20,4 @@ export class PostValidator {
     checkContent() {
         return body("content").isString();
     }
-
-    static checkPage() {
-        return query("page").isNumeric();
-    }
 }

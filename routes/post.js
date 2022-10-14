@@ -72,8 +72,12 @@ router.delete("/:id", validator.checkId(), handleValidator, async (req, res) => 
 });
 
 export const getPosts = async (req, res) => {
-    const limit = 20;
-    const { page = 1 } = req.query;
+    const limit = 1;
+    let { page } = req.query;
+    page = parseInt(page);
+    if (isNaN(page) || page < 1) {
+        page = 1;
+    }
     const posts = await Post.find()
         .skip((page - 1) * limit)
         .limit(limit);
