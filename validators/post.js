@@ -1,24 +1,16 @@
-import { body, param } from "express-validator";
-import mongoose from "mongoose";
+import { body, param, query } from "express-validator";
 
 export class PostValidator {
     checkId() {
-        return param("id")
-            .isString()
-            .customSanitizer((value) => {
-                if (!mongoose.isObjectIdOrHexString(value)) {
-                    return Promise.reject("Id is not correct!");
-                }
-                return mongoose.Types.ObjectId.createFromHexString(value);
-            });
+        return param("id").isString().isMongoId();
     }
 
     checkAuthor() {
         return body("author").isString();
     }
 
-    checkStatus() {
-        return body("status").isBoolean();
+    checkIsOpen() {
+        return body("isOpen").isBoolean();
     }
 
     checkTitle() {
@@ -27,5 +19,9 @@ export class PostValidator {
 
     checkContent() {
         return body("content").isString();
+    }
+
+    static checkPage() {
+        return query("page").isNumeric();
     }
 }

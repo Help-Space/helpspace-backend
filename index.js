@@ -1,8 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
-import postRoutes from "./routes/post.js";
+import postRoutes, { getPosts } from "./routes/post.js";
 import userRoutes from "./routes/user.js";
+import { PostValidator } from "./validators/post.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ connect(mongodbUrl).catch((err) => {
 
 app.use("/user", userRoutes);
 app.use("/post", postRoutes);
+app.get("/posts", PostValidator.checkPage(), getPosts);
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);

@@ -6,7 +6,7 @@ const Post = new Schema({
         ref: "User",
         required: true,
     },
-    status: {
+    is_open: {
         type: Boolean,
         required: true,
     },
@@ -23,5 +23,7 @@ const Post = new Schema({
         required: true,
     },
 });
+
+Post.index({ last_refresh: -1 });
 
 export default model("Post", Post);
