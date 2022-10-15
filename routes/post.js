@@ -1,5 +1,6 @@
 import { Router } from "express";
 import Post from "../models/post.js";
+import LikedPost from "../models/likedPosts.js";
 import { PostValidator } from "../validators/post.js";
 import handleValidator from "../middlewares/handleValidator.js";
 import getPostById from "../middlewares/post/getPostById.js";
@@ -58,6 +59,27 @@ withAuthRouter.patch(
     }
 );
 
+withAuthRouter.post("/:id/like", validator.checkId(), handleValidator, async (req, res) => {
+    const likedPost = new LikedPost({
+        liked_by: req.user.id,
+        post: req.params.id,
+        like_date: new Date(),
+    });
+    const added = await likedPost.save();
+    if (!added) {
+        return res.status(500).json({ isError: true, message: "Something went wrong!" });
+    }
+    res.status(200).json({ isError: false, message: "Like added successfully" });
+});
+
+withAuthRouter.delete("/:id/like", validator.checkId(), handleValidator, async (req, res) => {
+    const likedPost = await LikedPost.findOne({ liked_by: req.user.id, post: req.params.id });
+    if (!likedPost) {
+        return res.status(500).json({ isError: true, message: "Something went wrong!" });
+    }
+    res.status(200).json({ isError: false, message: "Like deleted successfully!" });
+});
+
 withAuthRouter.patch(
     "/:id/refresh",
     validator.checkId(),
@@ -107,6 +129,22 @@ postsRouter.get(
             .limit(limit)
             .sort({ last_refresh: -1 });
         res.status(200).json({ isError: false, data: posts });
+    }
+);
+
+postsRouter.get(
+    "/liked",
+    authMiddleware,
+    validator.checkPage(),
+    handleValidator,
+    async (req, res) => {
+        const limit = 20;
+        const { page } = req.query;
+        const likedPosts = await LikedPost.find({ author: req.user.id })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .sort({ last_refresh: -1 });
+        res.status(200).json({ isError: false, data: likedPosts });
     }
 );
 
