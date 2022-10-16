@@ -148,7 +148,6 @@ postsRouter.get(
         if (req.user) {
             const likedPosts = await LikedPost.find({ liked_by: req.user.id });
             posts = posts.map((post) => {
-                console.log(post);
                 const isInLikedPosts = likedPosts.find(
                     (likedPost) => likedPost.post._id.toHexString() === post._id.toHexString()
                 );
