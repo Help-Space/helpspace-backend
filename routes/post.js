@@ -139,12 +139,24 @@ postsRouter.get(
     handleValidator,
     async (req, res) => {
         const limit = 20;
-        let { page, authorId } = req.query;
-        const posts = await Post.find(authorId ? { author: authorId } : undefined)
+        const { page, authorId } = req.query;
+        let posts = await Post.find(authorId ? { author: authorId } : undefined)
             .skip((page - 1) * limit)
             .limit(limit)
             .populate("author", "_id first_name last_name")
             .sort({ last_refresh: -1 });
+        if (req.user) {
+            const likedPosts = await LikedPost.find({ liked_by: req.user.id });
+            posts = posts.map((post) => {
+                console.log(post);
+                const isInLikedPosts = likedPosts.find(
+                    (likedPost) => likedPost.post._id.toHexString() === post._id.toHexString()
+                );
+                return { ...post.toObject(), liked: !!isInLikedPosts };
+            });
+        } else {
+            posts = posts.map((post) => ({ ...post.toObject(), liked: false }));
+        }
         res.status(200).json({ isError: false, data: posts });
     }
 );
@@ -165,7 +177,7 @@ postsRouter.get(
                 path: "post",
                 populate: { path: "author", select: "_id first_name last_name" },
             });
-        likedPosts = likedPosts.map((val) => val.post);
+        likedPosts = likedPosts.map((val) => ({ ...val.post.toObject(), liked: true }));
         res.status(200).json({ isError: false, data: likedPosts });
     }
 );
