@@ -14,7 +14,17 @@ const validator = new PostValidator();
 withAuthRouter.use(authMiddleware);
 
 router.get("/:id", validator.checkId(), handleValidator, getPostById, async (req, res) => {
-    res.status(200).json({ isError: false, data: req.post });
+    let isPostLiked = false;
+    if (req.user) {
+        const likedPost = await LikedPost.findOne({
+            liked_by: req.user.id,
+            post: req.post._id,
+        });
+        if (likedPost) {
+            isPostLiked = true;
+        }
+    }
+    res.status(200).json({ isError: false, data: { ...req.post.toObject(), liked: isPostLiked } });
 });
 
 withAuthRouter.post(
@@ -60,6 +70,10 @@ withAuthRouter.patch(
 );
 
 withAuthRouter.post("/:id/like", validator.checkId(), handleValidator, async (req, res) => {
+    const isLiked = await LikedPost.findOne({ liked_by: req.user.id, post: req.params.id });
+    if (isLiked) {
+        return res.status(404).send({ isError: true, message: "Post is currently liked!" });
+    }
     const likedPost = new LikedPost({
         liked_by: req.user.id,
         post: req.params.id,
@@ -114,6 +128,8 @@ withAuthRouter.delete(
 
 router.use("/", withAuthRouter);
 
+export const postRoutes = router;
+
 const postsRouter = Router();
 
 postsRouter.get(
@@ -127,6 +143,7 @@ postsRouter.get(
         const posts = await Post.find(authorId ? { author: authorId } : undefined)
             .skip((page - 1) * limit)
             .limit(limit)
+            .populate("author", "_id first_name last_name")
             .sort({ last_refresh: -1 });
         res.status(200).json({ isError: false, data: posts });
     }
@@ -140,14 +157,17 @@ postsRouter.get(
     async (req, res) => {
         const limit = 20;
         const { page } = req.query;
-        const likedPosts = await LikedPost.find({ author: req.user.id })
+        let likedPosts = await LikedPost.find({ author: req.user.id })
             .skip((page - 1) * limit)
             .limit(limit)
-            .sort({ last_refresh: -1 });
+            .sort({ last_refresh: -1 })
+            .populate({
+                path: "post",
+                populate: { path: "author", select: "_id first_name last_name" },
+            });
+        likedPosts = likedPosts.map((val) => val.post);
         res.status(200).json({ isError: false, data: likedPosts });
     }
 );
 
 export const postsRoutes = postsRouter;
-
-export default router;
