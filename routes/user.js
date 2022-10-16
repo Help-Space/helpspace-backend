@@ -2,7 +2,6 @@ import { Router } from "express";
 import { body } from "express-validator";
 import { hash } from "bcrypt";
 import handleValidator from "../middlewares/handleValidator.js";
-import generateAccesstoken from "../utils/generateToken.js";
 import User from "../models/user.js";
 
 const router = Router();
@@ -30,17 +29,7 @@ router.post(
 
         user.save().then(
             (user) => {
-                delete user.password;
-                const accessToken = generateAccesstoken({ id: user.id });
-                res.cookie("access_token", accessToken, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: process.env.NODE_ENV === "production" ? "strict" : "none",
-                    path: "/",
-                    maxAge: 1000 * 60 * 60 * 24 * 7,
-                })
-                    .status(200)
-                    .json({ isError: false, data: user });
+                loginUser(res, user);
             },
             (err) => {
                 console.error(err);
