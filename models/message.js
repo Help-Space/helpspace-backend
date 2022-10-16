@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 
 const Message = new Schema({
-    user: {
+    author: {
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true,
@@ -19,7 +19,7 @@ const Message = new Schema({
         type: Date,
         required: true,
         default: new Date(),
-    }
+    },
 });
 
 export default model("Message", Message);
