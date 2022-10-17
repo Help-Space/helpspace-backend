@@ -6,7 +6,9 @@ import { postRoutes, postsRoutes } from "./routes/post.js";
 import userRoutes from "./routes/user.js";
 import decodeUser from "./middlewares/user/decodeUser.js";
 import decodeSocketUser from "./middlewares/user/decodeSocketUser.js";
-import { createServer, Server } from "http";
+import { Server } from "socket.io";
+import { createServer } from "http";
+import cors from "cors";
 
 dotenv.config();
 
@@ -21,6 +23,10 @@ if (!mongodbUrl) {
 app.use(express.json());
 app.use(cookieParser());
 app.use(decodeUser);
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true
+}));
 
 connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }).catch((err) => {
     console.error(err);
@@ -37,28 +43,28 @@ app.use((req, res) => {
     res.status(404).json({ isError: true, message: "Route not found or method is not correct!" });
 });
 
-// const socketCors = {
-//     origin: process.env.FRONTEND_URL,
-//     methods: ["GET", "POST"],
-//     credentials: true,
-// };
+const socketCors = {
+    origin: process.env.FRONTEND_URL,
+    methods: ["GET", "POST"],
+    credentials: true,
+};
 
-// const server = createServer(app);
-// export const io = new Server(server, {
-//     cors: socketCors,
-// });
+const server = createServer(app);
+export const io = new Server(server, {
+    cors: socketCors,
+});
 
-// io.use(decodeSocketUser);
+io.use(decodeSocketUser);
 
-// io.on("connection", (socket) => {
-//     console.log(socket.user.id + " connected");
-//     socket.on("message", (msg) => {
-//         io.emit("message", msg);
-//     });
+io.on("connection", (socket) => {
+    console.log(socket.user.id + " connected");
+    socket.on("message", (msg) => {
+        io.emit("message", msg);
+    });
 
-//     socket.on("disconnect", () => console.log(socket.user.id + " disconnected"));
-// });
+    socket.on("disconnect", () => console.log(socket.user.id + " disconnected"));
+});
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
