@@ -60,8 +60,10 @@ io.use(decodeSocketUser);
 
 io.on("connection", (socket) => {
     console.log(socket.user.id + " connected");
-    socket.on("message", (msg) => {
-        io.emit("message", msg);
+    socket.on("messageCreate", (msg) => {
+        if (msg) {
+            socket.to(`${msg.postID}-${socket.user.id}`).emit("message", msg.content);
+        }
     });
 
     socket.on("disconnect", () => console.log(socket.user.id + " disconnected"));
