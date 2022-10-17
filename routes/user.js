@@ -3,13 +3,14 @@ import { hash, compare } from "bcrypt";
 import handleValidator from "../middlewares/handleValidator.js";
 import User from "../models/user.js";
 import loginUser from "../utils/loginUser.js";
-import auth from "../middlewares/user/auth.js";
+import {logged, notLogged} from "../middlewares/user/auth.js";
 import {UserValidator} from "../validators/user.js";
 
 const router = Router();
 
 router.post(
     "/register",
+    notLogged,
     UserValidator.checkFirstName(),
     UserValidator.checkLastName(),
     UserValidator.checkEmail(),
@@ -43,6 +44,7 @@ router.post(
 
 router.post(
     "/login",
+    notLogged,
     UserValidator.checkEmail(false),
     UserValidator.checkPassword(false),
     handleValidator,
@@ -60,12 +62,12 @@ router.post(
     }
 );
 
-router.delete("/logout", auth, (req, res) => {
+router.delete("/logout", logged, (req, res) => {
     res.clearCookie("access_token");
     res.status(200).json({isError: false, message: "Successfully logged out"});
 });
 
-router.get("/", auth, async (req, res) => {
+router.get("/", logged, async (req, res) => {
     const user = await User.findById(req.user.id).select("-password");
     res.status(200).json({isError: false, data: user});
 });

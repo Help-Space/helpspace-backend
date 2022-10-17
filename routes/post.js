@@ -5,13 +5,13 @@ import { PostValidator } from "../validators/post.js";
 import handleValidator from "../middlewares/handleValidator.js";
 import getPostById from "../middlewares/post/getPostById.js";
 import hasPermissionToModify from "../middlewares/post/hasPermissionToModify.js";
-import authMiddleware from "../middlewares/user/auth.js";
+import {logged} from "../middlewares/user/auth.js";
 
 const router = Router();
 const withAuthRouter = Router();
 const validator = new PostValidator();
 
-withAuthRouter.use(authMiddleware);
+withAuthRouter.use(logged);
 
 router.get("/:id", validator.checkId(), handleValidator, getPostById, async (req, res) => {
     let isPostLiked = false;
@@ -162,7 +162,7 @@ postsRouter.get(
 
 postsRouter.get(
     "/liked",
-    authMiddleware,
+    logged,
     validator.checkPage(),
     handleValidator,
     async (req, res) => {
