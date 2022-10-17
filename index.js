@@ -7,6 +7,7 @@ import userRoutes from "./routes/user.js";
 import decodeUser from "./middlewares/user/decodeUser.js";
 import decodeSocketUser from "./middlewares/user/decodeSocketUser.js";
 import { Server } from "socket.io";
+import logger from "morgan";
 import { createServer } from "http";
 import cors from "cors";
 
@@ -20,6 +21,7 @@ if (!mongodbUrl) {
     throw new Error("Mongo URL is not provided");
 }
 
+app.use(logger("dev"));
 app.use(express.json());
 app.use(cookieParser());
 app.use(decodeUser);
