@@ -1,11 +1,18 @@
 import { model, Schema } from "mongoose";
 
 const Conversation = new Schema({
-    participants: {
-        type: [Schema.Types.ObjectId],
+    post_owner: {
+        type: Schema.Types.ObjectId,
         ref: "User",
         required: true,
-        validate: [arrayMaxLength, "max limit of 2"],
+        default: function () {
+            return this.post.author;
+        }
+    },
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
     },
     post: {
         type: Schema.Types.ObjectId,
@@ -18,9 +25,5 @@ const Conversation = new Schema({
         default: new Date(),
     },
 });
-
-const arrayMaxLength = (val) => {
-    return val.length <= 2;
-};
 
 export default model("Conversation", Conversation);

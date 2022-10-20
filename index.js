@@ -10,6 +10,10 @@ import { Server } from "socket.io";
 import logger from "morgan";
 import { createServer } from "http";
 import cors from "cors";
+import conversationCreateListener from "./listeners/conversationCreateListener.js";
+import messageListener from "./listeners/messageListener.js";
+import messagesRequestListener from "./listeners/messagesRequestListener.js";
+import Conversation from "./models/conversation.js";
 
 dotenv.config();
 
@@ -58,15 +62,20 @@ export const io = new Server(server, {
 
 io.use(decodeSocketUser);
 
-io.on("connection", (socket) => {
-    console.log(socket.user.id + " connected");
-    socket.on("messageCreate", (msg) => {
-        if (msg) {
-            socket.to(`${msg.postID}-${socket.user.id}`).emit("message", msg.content);
-        }
-    });
+io.on("connection", async (socket) => {
+    const userId = socket.user.id;
+    console.log(userId + " connected");
+    const conversations = await Conversation.find({ $or: [{post_owner: userId}, {user: userId}] }).exec();
+    conversations.forEach((conversation) => {
+        socket.join(conversation._id.toString());
+    })
 
-    socket.on("disconnect", () => console.log(socket.user.id + " disconnected"));
+    socket.to(userId).emit("conversations", conversations);
+    socket.on("messagesRequest", (data) => messagesRequestListener(socket, data));
+    socket.on("conversationCreate", (data) => conversationCreateListener(socket, data));
+    socket.on("message", (data) => messageListener(socket, data));
+
+    socket.on("disconnect", () => console.log(userId + " disconnected"));
 });
 
 server.listen(port, () => {
