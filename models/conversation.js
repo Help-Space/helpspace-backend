@@ -5,9 +5,6 @@ const Conversation = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true,
-        default: function () {
-            return this.post.author;
-        }
     },
     user: {
         type: Schema.Types.ObjectId,
@@ -25,5 +22,7 @@ const Conversation = new Schema({
         default: new Date(),
     },
 });
+
+Conversation.index({_id: 1, post: 1}, {unique: true});
 
 export default model("Conversation", Conversation);
