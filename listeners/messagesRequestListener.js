@@ -10,7 +10,7 @@ const messagesRequestListener = async (socket, data) => {
         return;
     }
     const messages = await Message.find({conversation: conversationId}).exec();
-    socket.to(user).emit("messages", messages.map((message) => ({
+    socket.emit("messages", messages.map((message) => ({
         ...message.toObject(),
         author: conversation.post_owner._id.toString() === message.author.toString() ? conversation.post_owner : conversation.user,
     })));
