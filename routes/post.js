@@ -5,7 +5,7 @@ import { PostValidator } from "../validators/post.js";
 import handleValidator from "../middlewares/handleValidator.js";
 import getPostById from "../middlewares/post/getPostById.js";
 import hasPermissionToModify from "../middlewares/post/hasPermissionToModify.js";
-import {logged} from "../middlewares/user/auth.js";
+import { logged } from "../middlewares/user/auth.js";
 
 const router = Router();
 const withAuthRouter = Router();
@@ -87,7 +87,10 @@ withAuthRouter.post("/:id/like", validator.checkId(), handleValidator, async (re
 });
 
 withAuthRouter.delete("/:id/like", validator.checkId(), handleValidator, async (req, res) => {
-    const likedPost = await LikedPost.findOneAndDelete({ liked_by: req.user.id, post: req.params.id });
+    const likedPost = await LikedPost.findOneAndDelete({
+        liked_by: req.user.id,
+        post: req.params.id,
+    });
     if (!likedPost) {
         return res.status(500).json({ isError: true, message: "Something went wrong!" });
     }
@@ -156,29 +159,28 @@ postsRouter.get(
         } else {
             posts = posts.map((post) => ({ ...post.toObject(), liked: false }));
         }
-        res.status(200).json({ isError: false, data: posts });
+        const postsData = { pages: Math.ceil(Post.length / limit), posts };
+        res.status(200).json({ isError: false, data: postsData });
     }
 );
 
-postsRouter.get(
-    "/liked",
-    logged,
-    validator.checkPage(),
-    handleValidator,
-    async (req, res) => {
-        const limit = 20;
-        const { page } = req.query;
-        let likedPosts = await LikedPost.find({ author: req.user.id })
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .sort({ last_refresh: -1 })
-            .populate({
-                path: "post",
-                populate: { path: "author", select: "_id first_name last_name" },
-            });
-        likedPosts = likedPosts.map((val) => ({ ...val.post.toObject(), liked: true }));
-        res.status(200).json({ isError: false, data: likedPosts });
-    }
-);
+postsRouter.get("/liked", logged, validator.checkPage(), handleValidator, async (req, res) => {
+    const limit = 20;
+    const { page } = req.query;
+    let likedPosts = await LikedPost.find({ author: req.user.id })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ last_refresh: -1 })
+        .populate({
+            path: "post",
+            populate: { path: "author", select: "_id first_name last_name" },
+        });
+    likedPosts = likedPosts.map((val) => ({ ...val.post.toObject(), liked: true }));
+    const likedPostsCount = await LikedPost.find({ author: req.user.id }).count();
+    res.status(200).json({
+        isError: false,
+        data: { pages: Math.ceil(likedPostsCount / limit), posts: likedPosts },
+    });
+});
 
 export const postsRoutes = postsRouter;
