@@ -21,6 +21,8 @@ const conversationCreateListener = async (socket, data) => {
             user,
         });
         await conversation.save();
+        socket.join(conversation._id.toString());
+        // todo join second conversation user?
 }
 
 export default conversationCreateListener;
