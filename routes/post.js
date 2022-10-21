@@ -87,7 +87,7 @@ withAuthRouter.post("/:id/like", validator.checkId(), handleValidator, async (re
 });
 
 withAuthRouter.delete("/:id/like", validator.checkId(), handleValidator, async (req, res) => {
-    const likedPost = await LikedPost.findOne({ liked_by: req.user.id, post: req.params.id });
+    const likedPost = await LikedPost.findOneAndDelete({ liked_by: req.user.id, post: req.params.id });
     if (!likedPost) {
         return res.status(500).json({ isError: true, message: "Something went wrong!" });
     }
@@ -149,7 +149,7 @@ postsRouter.get(
             const likedPosts = await LikedPost.find({ liked_by: req.user.id });
             posts = posts.map((post) => {
                 const isInLikedPosts = likedPosts.find(
-                    (likedPost) => likedPost.post._id.toHexString() === post._id.toHexString()
+                    (likedPost) => likedPost.post._id.toString() === post._id.toString()
                 );
                 return { ...post.toObject(), liked: !!isInLikedPosts };
             });
