@@ -1,4 +1,6 @@
 import { model, Schema } from "mongoose";
+import LikedPost from "../models/likedPosts.js";
+import Conversation from "../models/conversation.js";
 
 const Post = new Schema({
     author: {
@@ -23,6 +25,16 @@ const Post = new Schema({
         required: true,
     },
 });
+
+Post.pre("remove", async function () {
+    try {
+        await LikedPost.deleteMany({ post: this._id })
+        await Conversation.deleteMany({ post: this._id });
+    }
+    catch(err) {
+        console.error(err);
+    }
+})
 
 Post.index({ last_refresh: -1 });
 
