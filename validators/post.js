@@ -26,10 +26,10 @@ export class PostValidator {
     }
 
     checkTitle() {
-        return body("title").isString();
+        return body("title").isString().isLength({ min: 1, max: 50 });
     }
 
     checkContent() {
-        return body("content").isString();
+        return body("content").isString().isLength({ min: 1, max: 1000 });
     }
 }
