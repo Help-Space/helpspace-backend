@@ -26,11 +26,20 @@ const conversationCreateListener = async (socket, data) => {
         user,
     });
     await conversation.save();
-    // todo resend conversation to user (conversationCreated)
+
+    const conversationObj = (await conversation.populate("post", "title _id")).toObject();
+    await Conversation.populate(conversation, {path: "user post_owner"});
+    const target = conversation[conversation.post_owner._id.toString() === socket.user.id ? "user" : "post_owner"];
+    const finalConversation = {
+        ...conversationObj,
+        targetUser: {first_name: target.first_name, last_name: target.last_name}
+    };
     socket.join(conversation._id.toString());
+    socket.emit("conversationCreated", finalConversation);
     io.sockets.sockets.forEach(authorSocket => {
         if (socket.user.id === dbPost.author.toString()) {
             authorSocket.join(conversation._id.toString());
+            authorSocket.emit("conversationCreated", finalConversation);
         }
     })
 }

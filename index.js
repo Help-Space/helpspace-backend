@@ -65,7 +65,7 @@ io.use(decodeSocketUser);
 io.on("connection", async (socket) => {
     const userId = socket.user.id;
     console.log(userId + " connected");
-    const conversations = await Conversation.find({ $or: [{post_owner: userId}, {user: userId}] }).exec();
+    const conversations = await Conversation.find({ $or: [{post_owner: userId}, {user: userId}] }).populate("post", "title _id").exec();
     const conversationsObj = conversations.map((conversation) => conversation.toObject());
     await Conversation.populate(conversations, {path: "user post_owner"});
     conversations.forEach((conversation) => {
