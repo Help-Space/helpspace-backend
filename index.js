@@ -65,17 +65,18 @@ io.use(decodeSocketUser);
 io.on("connection", async (socket) => {
     const userId = socket.user.id;
     console.log(userId + " connected");
-    const conversations = await Conversation.find({ $or: [{post_owner: userId}, {user: userId}] })
-        .populate("user").populate("post_owner").exec();
+    const conversations = await Conversation.find({ $or: [{post_owner: userId}, {user: userId}] }).exec();
+    const conversationsObj = conversations.map((conversation) => conversation.toObject());
+    await Conversation.populate(conversations, {path: "user post_owner"});
     conversations.forEach((conversation) => {
         socket.join(conversation._id.toString());
     })
 
-    socket.to(userId).emit("conversations", conversations.map(conversation => {
-        const {_: {first_name, last_name}} = conversation[conversation.post_owner.toString() === userId ? "user" : "post_owner"];
+    socket.emit("conversations", conversations.map((conversation, i) => {
+        const target = conversation[conversation.post_owner._id.toString() === userId ? "user" : "post_owner"];
         return ({
-            ...conversation,
-            targetUser: {first_name, last_name}
+            ...conversationsObj[i],
+            targetUser: {first_name: target.first_name, last_name: target.last_name}
         })
     }));
     socket.on("messagesRequest", (data) => messagesRequestListener(socket, data));
