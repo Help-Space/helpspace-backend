@@ -26,6 +26,7 @@ const conversationCreateListener = async (socket, data) => {
         user,
     });
     await conversation.save();
+    // todo resend conversation to user (conversationCreated)
     socket.join(conversation._id.toString());
     io.sockets.sockets.forEach(authorSocket => {
         if (socket.user.id === dbPost.author.toString()) {
