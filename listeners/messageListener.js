@@ -6,6 +6,10 @@ import Conversation from "../models/conversation.js";
 const messageListener = async (socket, data) => {
     const userId = socket.user.id;
     const { conversationId, message } = data;
+    if (message.length > 512) {
+        console.error("messageListener -> Message too long");
+        return;
+    }
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
         console.error("messageListener -> Invalid conversation id", conversationId);
         return;
