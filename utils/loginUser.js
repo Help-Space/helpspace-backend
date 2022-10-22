@@ -10,7 +10,7 @@ const loginUser = (res, user) => {
     };
     res.cookie("access_token", accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: true,
         sameSite: process.env.NODE_ENV === "production" ? "strict" : "none",
         path: "/",
         maxAge: 1000 * 60 * 60 * 24 * 7,
