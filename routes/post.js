@@ -143,6 +143,7 @@ postsRouter.get(
     async (req, res) => {
         const limit = 20;
         const { page, authorId } = req.query;
+        const postsCount = await Post.count(authorId ? { author: authorId } : undefined).exec();
         let posts = await Post.find(authorId ? { author: authorId } : undefined)
             .skip((page - 1) * limit)
             .limit(limit)
@@ -159,7 +160,7 @@ postsRouter.get(
         } else {
             posts = posts.map((post) => ({ ...post.toObject(), liked: false }));
         }
-        const postsData = { pages: Math.ceil(Post.length / limit), posts };
+        const postsData = { pages: Math.ceil(postsCount / limit), posts };
         res.status(200).json({ isError: false, data: postsData });
     }
 );
