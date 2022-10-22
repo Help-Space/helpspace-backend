@@ -141,7 +141,7 @@ postsRouter.get(
     validator.checkPage(),
     handleValidator,
     async (req, res) => {
-        const limit = 20;
+        const limit = 10;
         const { page, authorId } = req.query;
         const postsCount = await Post.count(authorId ? { author: authorId } : undefined).exec();
         let posts = await Post.find(authorId ? { author: authorId } : undefined)
@@ -166,7 +166,7 @@ postsRouter.get(
 );
 
 postsRouter.get("/liked", logged, validator.checkPage(), handleValidator, async (req, res) => {
-    const limit = 20;
+    const limit = 10;
     const { page } = req.query;
     let likedPosts = await LikedPost.find({ author: req.user.id })
         .skip((page - 1) * limit)
