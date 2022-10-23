@@ -139,16 +139,25 @@ postsRouter.get(
     "/",
     validator.checkAuthorId(),
     validator.checkPage(),
+    validator.checkFilterBy(),
     handleValidator,
     async (req, res) => {
         const limit = 10;
-        const { page, authorId } = req.query;
-        const postsCount = await Post.count(authorId ? { author: authorId } : undefined).exec();
-        let posts = await Post.find(authorId ? { author: authorId } : undefined)
+        const { page, authorId, filterBy } = req.query;
+        if ((!req.user || req.user.id !== authorId) && filterBy === "ended") {
+            return res.status(403).json({ isError: true, message: "Not enough permissions!" });
+        }
+        const postsCount = await Post.count(
+            authorId ? { author: authorId, is_open: filterBy === "opened" } : { is_open: true }
+        ).exec();
+        let posts = await Post.find(
+            authorId ? { author: authorId, is_open: filterBy === "opened" } : { is_open: true }
+        )
             .skip((page - 1) * limit)
             .limit(limit)
             .populate("author", "_id first_name last_name")
             .sort({ last_refresh: -1 });
+        console.log(posts);
         if (req.user) {
             const likedPosts = await LikedPost.find({ liked_by: req.user.id });
             posts = posts.map((post) => {

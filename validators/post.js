@@ -9,6 +9,10 @@ export class PostValidator {
         return query("authorId").optional().isMongoId();
     }
 
+    checkFilterBy() {
+        return query("filterBy").optional().default("opened");
+    }
+
     checkPage() {
         return query("page")
             .optional()
