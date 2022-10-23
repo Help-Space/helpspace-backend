@@ -14,6 +14,9 @@ const validator = new PostValidator();
 withAuthRouter.use(logged);
 
 router.get("/:id", validator.checkId(), handleValidator, getPostById, async (req, res) => {
+    if (!req.post.is_open && req.user.id !== req.post.author._id) {
+        return res.status(403).json({ isError: true, message: "Not enough permissions!" });
+    }
     let isPostLiked = false;
     if (req.user) {
         const likedPost = await LikedPost.findOne({
