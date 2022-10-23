@@ -6,7 +6,12 @@ const messagesRequestListener = async (socket, data) => {
     const {conversationId} = data;
     const select = "first_name last_name _id";
     const conversation = await Conversation.findById(conversationId).populate("post_owner", select).populate("user", select).exec();
-    if (!conversation || (conversation.post_owner.toString() !== user && conversation.user.toString() !== user)) {
+    if (!conversation) {
+        console.error("messagesRequestListener -> Conversation not found", conversationId);
+        return;
+    }
+    if ((conversation.post_owner._id.toString() !== user) && (conversation.user._id.toString() !== user)) {
+        console.error("messagesRequestListener -> Insufficient permissions", conversationId);
         return;
     }
     const messages = await Message.find({conversation: conversationId}).exec();
