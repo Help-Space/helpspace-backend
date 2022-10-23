@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import {body, param} from "express-validator";
 import User from "../models/user.js";
 
 export class UserValidator {
@@ -40,5 +40,9 @@ export class UserValidator {
 
     static checkBirthDate() {
         return body("birth_date").isISO8601();
+    }
+
+    static checkId() {
+        return param("id").isMongoId();
     }
 }
