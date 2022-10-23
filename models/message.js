@@ -18,7 +18,7 @@ const Message = new Schema({
     created_at: {
         type: Date,
         required: true,
-        default: new Date(),
+        default: () => new Date(),
     },
 });
 
