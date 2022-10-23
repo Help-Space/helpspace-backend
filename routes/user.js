@@ -73,7 +73,7 @@ router.get("/", logged, async (req, res) => {
 });
 
 router.get("/:id", UserValidator.checkId(), handleValidator, async (req, res) => {
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await User.findById(req.params.id).select("-password -email");
     if (!user) {
         return res.status(404).json({ isError: true, message: "User not found" });
     }
