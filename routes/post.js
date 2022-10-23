@@ -177,13 +177,14 @@ postsRouter.get("/liked", logged, validator.checkPage(), handleValidator, async 
     const limit = 10;
     const { page } = req.query;
     let likedPosts = await LikedPost.find({ author: req.user.id })
-        .skip((page - 1) * limit)
-        .limit(limit)
         .sort({ last_refresh: -1 })
         .populate({
             path: "post",
             populate: { path: "author", select: "_id first_name last_name" },
         });
+    likedPosts = likedPosts
+        .filter((val) => val.post.is_open)
+        .slice((page - 1) * limit, page * limit);
     likedPosts = likedPosts.map((val) => ({ ...val.post.toObject(), liked: true }));
     const likedPostsCount = await LikedPost.find({ author: req.user.id }).count();
     res.status(200).json({

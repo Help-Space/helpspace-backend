@@ -69,6 +69,9 @@ router.delete("/logout", logged, (req, res) => {
 
 router.get("/", logged, async (req, res) => {
     const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+        return res.status(404).json({ isError: true, message: "User not found" });
+    }
     res.status(200).json({ isError: false, data: user });
 });
 
