@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="" height="200px" src="https://helpspace.site/helpspace_baner.png"/>
+  <img alt="" src="https://helpspace.site/helpspace_baner.png"/>
 </p>
 
 # <p align="center">🌐 HelpSpace - backend</p>
