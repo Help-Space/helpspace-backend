@@ -157,7 +157,6 @@ postsRouter.get(
             .limit(limit)
             .populate("author", "_id first_name last_name")
             .sort({ last_refresh: -1 });
-        console.log(posts);
         if (req.user) {
             const likedPosts = await LikedPost.find({ liked_by: req.user.id });
             posts = posts.map((post) => {
