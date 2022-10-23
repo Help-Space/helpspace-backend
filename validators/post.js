@@ -30,6 +30,6 @@ export class PostValidator {
     }
 
     checkContent() {
-        return body("content").isString().isLength({ min: 1, max: 1000 });
+        return body("content").isString().isLength({ min: 10, max: 2056 });
     }
 }
